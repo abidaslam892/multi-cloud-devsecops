@@ -22,11 +22,14 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install -r app/requirements.txt
+          cd app
+          pip install -r requirements.txt
+          pip install pytest-cov
 
       - name: Run unit tests
         run: |
-          pytest -q app/tests
+          cd app
+          python -m pytest tests/ -v --cov=src
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
