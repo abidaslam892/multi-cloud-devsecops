@@ -37,7 +37,7 @@ variable "subnet_names" {
 variable "aks_kubernetes_version" {
   description = "Kubernetes version for AKS cluster"
   type        = string
-  default     = "1.28.3"
+  default     = "1.31.11"
 }
 
 variable "aks_node_vm_size" {

@@ -62,14 +62,13 @@ resource "azurerm_kubernetes_cluster" "main" {
   kubernetes_version  = var.aks_kubernetes_version
 
   default_node_pool {
-    name               = "default"
-    vm_size            = var.aks_node_vm_size
-    vnet_subnet_id     = azurerm_subnet.aks.id
-    auto_scaling_enabled = true
-    min_count          = var.aks_node_min_count
-    max_count          = var.aks_node_max_count
-    node_count         = null
-    os_disk_size_gb    = 30
+    name                = "default"
+    vm_size             = var.aks_node_vm_size
+    vnet_subnet_id      = azurerm_subnet.aks.id
+    enable_auto_scaling = true
+    min_count           = var.aks_node_min_count
+    max_count           = var.aks_node_max_count
+    os_disk_size_gb     = 30
 
     tags = merge(
       var.tags,
