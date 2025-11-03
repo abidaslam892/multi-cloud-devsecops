@@ -1,0 +1,25 @@
+{
+  "folders": [
+    { "name": "multi-cloud-devsecops", "path": "." }
+  ],
+  "settings": {
+    "terminal.integrated.defaultProfile.linux": "bash",
+    "files.exclude": {
+      "**/.terraform": true,
+      "**/node_modules": true,
+      "**/*.tfstate": true
+    }
+  },
+  "extensions": {
+    "recommendations": [
+      "hashicorp.terraform",
+      "ms-azuretools.vscode-docker",
+      "redhat.vscode-yaml",
+      "ms-azure-devops.azure-pipelines",
+      "ms-vscode.cpptools",
+      "eamodio.gitlens",
+      "aquasecurity.trivy",
+      "sonarsource.sonarlint-vscode"
+    ]
+  }
+}

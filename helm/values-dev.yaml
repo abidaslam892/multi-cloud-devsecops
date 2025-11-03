@@ -1,0 +1,50 @@
+# Development environment values
+# Overrides for helm/chart/values.yaml
+
+replicaCount: 1
+
+image:
+  repository: YOUR_REGISTRY/multi-cloud-devsecops
+  pullPolicy: Always
+  tag: "dev-latest"
+
+resources:
+  limits:
+    cpu: 200m
+    memory: 256Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+autoscaling:
+  enabled: false
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-staging"
+  hosts:
+    - host: app-dev.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: app-dev-tls
+      hosts:
+        - app-dev.example.com
+
+# Application-specific configuration
+app:
+  environment: "development"
+  logLevel: "DEBUG"
+  features:
+    enableMetrics: true
+    enableTracing: true
+    enableDebug: true
+
+# Development-specific node selector (optional)
+nodeSelector: {}
+
+# Tolerations for dev workloads (optional)
+tolerations: []

@@ -1,0 +1,96 @@
+# Production environment values
+# Overrides for helm/chart/values.yaml
+
+replicaCount: 3
+
+image:
+  repository: YOUR_REGISTRY/multi-cloud-devsecops
+  pullPolicy: IfNotPresent
+  tag: "v1.0.0"
+
+imagePullSecrets:
+  - name: registry-credentials
+
+resources:
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+  requests:
+    cpu: 500m
+    memory: 512Mi
+
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/rate-limit: "200"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+  hosts:
+    - host: app.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: app-prod-tls
+      hosts:
+        - app.example.com
+
+livenessProbe:
+  httpGet:
+    path: /health
+    port: 80
+  initialDelaySeconds: 60
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+readinessProbe:
+  httpGet:
+    path: /health
+    port: 80
+  initialDelaySeconds: 30
+  periodSeconds: 5
+  timeoutSeconds: 3
+  failureThreshold: 3
+
+# Application-specific configuration
+app:
+  environment: "production"
+  logLevel: "WARNING"
+  features:
+    enableMetrics: true
+    enableTracing: true
+    enableDebug: false
+
+# Production node selector
+nodeSelector:
+  environment: production
+  workload-type: application
+
+# Pod anti-affinity for high availability (required)
+affinity:
+  podAntiAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      - labelSelector:
+          matchExpressions:
+            - key: app.kubernetes.io/name
+              operator: In
+              values:
+                - multi-cloud-devsecops
+        topologyKey: kubernetes.io/hostname
+
+# Tolerate production taints
+tolerations:
+  - key: "workload"
+    operator: "Equal"
+    value: "production"
+    effect: "NoSchedule"

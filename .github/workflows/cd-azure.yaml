@@ -1,0 +1,48 @@
+name: CD - Azure (AKS)
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  deploy-to-aks:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Set variables
+        run: |
+          echo "ACR_NAME=${{ secrets.ACR_NAME }}" >> $GITHUB_ENV
+          echo "ACR_LOGIN_SERVER=${{ secrets.ACR_LOGIN_SERVER }}" >> $GITHUB_ENV
+          echo "ACR_REPO=${{ secrets.ACR_REPO }}" >> $GITHUB_ENV
+          echo "IMAGE_TAG=${GITHUB_SHA}" >> $GITHUB_ENV
+
+      - name: Login to ACR
+        run: |
+          az acr login --name $ACR_NAME
+
+      - name: Build & Push to ACR
+        run: |
+          docker build -t $ACR_LOGIN_SERVER/$ACR_REPO:${GITHUB_SHA} app/
+          docker push $ACR_LOGIN_SERVER/$ACR_REPO:${GITHUB_SHA}
+
+      - name: Get AKS credentials
+        run: |
+          az aks get-credentials --resource-group ${{ secrets.AKS_RESOURCE_GROUP }} --name ${{ secrets.AKS_CLUSTER_NAME }} --overwrite-existing
+
+      - name: Install Helm
+        uses: azure/setup-helm@v3
+
+      - name: Helm upgrade/install to AKS
+        run: |
+          helm upgrade --install multi-cloud-app helm/chart \
+            --set image.repository=${ACR_LOGIN_SERVER}/${ACR_REPO} \
+            --set image.tag=${GITHUB_SHA} \
+            --namespace default --create-namespace

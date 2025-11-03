@@ -1,0 +1,144 @@
+# Minimal Prometheus Stack Configuration
+# For development/testing environments with limited resources
+# Install with: helm install prometheus prometheus-community/kube-prometheus-stack -f monitoring/prometheus-values-minimal.yaml -n monitoring --create-namespace --timeout 15m
+
+# Prometheus configuration
+prometheus:
+  prometheusSpec:
+    # Reduced retention
+    retention: 7d
+    retentionSize: "10GB"
+    
+    # Minimal resources
+    resources:
+      requests:
+        cpu: 100m
+        memory: 512Mi
+      limits:
+        cpu: 500m
+        memory: 1Gi
+    
+    # No persistent storage (uses emptyDir)
+    storageSpec: {}
+    
+    # Simplified scrape configs
+    serviceMonitorSelector: {}
+    podMonitorSelector: {}
+    ruleSelector: {}
+    
+    # Disable admin API
+    enableAdminAPI: false
+
+# Alertmanager - disabled for minimal setup
+alertmanager:
+  enabled: false
+
+# Grafana with minimal resources
+grafana:
+  enabled: true
+  
+  adminPassword: "admin"
+  
+  # Minimal resources
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 250m
+      memory: 512Mi
+  
+  # No persistence (ephemeral)
+  persistence:
+    enabled: false
+  
+  # Basic datasources
+  datasources:
+    datasources.yaml:
+      apiVersion: 1
+      datasources:
+        - name: Prometheus
+          type: prometheus
+          url: http://prometheus-kube-prometheus-prometheus:9090
+          access: proxy
+          isDefault: true
+  
+  # Disable ingress
+  ingress:
+    enabled: false
+  
+  # Load minimal dashboards
+  dashboardProviders:
+    dashboardproviders.yaml:
+      apiVersion: 1
+      providers:
+        - name: 'default'
+          orgId: 1
+          folder: ''
+          type: file
+          disableDeletion: false
+          editable: true
+          options:
+            path: /var/lib/grafana/dashboards/default
+
+# Node exporter - enabled
+prometheus-node-exporter:
+  enabled: true
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 100m
+      memory: 128Mi
+
+# Kube-state-metrics - enabled
+kube-state-metrics:
+  enabled: true
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 100m
+      memory: 128Mi
+
+# Disable some default rules to reduce resource usage
+defaultRules:
+  create: true
+  rules:
+    # Core rules only
+    alertmanager: false
+    etcd: false
+    configReloaders: false
+    general: true
+    k8s: true
+    kubeApiserver: false
+    kubeApiserverAvailability: false
+    kubeApiserverSlos: false
+    kubelet: true
+    kubeProxy: false
+    kubePrometheusGeneral: false
+    kubePrometheusNodeRecording: true
+    kubernetesApps: true
+    kubernetesResources: true
+    kubernetesStorage: false
+    kubernetesSystem: true
+    kubeScheduler: false
+    kubeStateMetrics: true
+    network: false
+    node: true
+    nodeExporterAlerting: false
+    nodeExporterRecording: true
+    prometheus: true
+    prometheusOperator: false
+
+# Reduce scrape intervals to save resources
+prometheusOperator:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi

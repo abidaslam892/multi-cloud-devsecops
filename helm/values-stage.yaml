@@ -1,0 +1,67 @@
+# Staging environment values
+# Overrides for helm/chart/values.yaml
+
+replicaCount: 2
+
+image:
+  repository: YOUR_REGISTRY/multi-cloud-devsecops
+  pullPolicy: IfNotPresent
+  tag: "stage-latest"
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 250m
+    memory: 256Mi
+
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 75
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/rate-limit: "100"
+  hosts:
+    - host: app-stage.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: app-stage-tls
+      hosts:
+        - app-stage.example.com
+
+# Application-specific configuration
+app:
+  environment: "staging"
+  logLevel: "INFO"
+  features:
+    enableMetrics: true
+    enableTracing: true
+    enableDebug: false
+
+# Prefer scheduling on staging nodes
+nodeSelector:
+  environment: staging
+
+# Pod anti-affinity for high availability
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        podAffinityTerm:
+          labelSelector:
+            matchExpressions:
+              - key: app.kubernetes.io/name
+                operator: In
+                values:
+                  - multi-cloud-devsecops
+          topologyKey: kubernetes.io/hostname

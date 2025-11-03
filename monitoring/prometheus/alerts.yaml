@@ -1,0 +1,101 @@
+# Prometheus Alert Rules for Multi-Cloud DevSecOps Application
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-app-rules
+  labels:
+    prometheus: kube-prometheus
+data:
+  application-alerts.yaml: |
+    groups:
+      - name: application
+        interval: 30s
+        rules:
+          # High error rate
+          - alert: HighErrorRate
+            expr: |
+              sum(rate(http_requests_total{job="multi-cloud-devsecops",status=~"5.."}[5m]))
+              /
+              sum(rate(http_requests_total{job="multi-cloud-devsecops"}[5m]))
+              > 0.05
+            for: 5m
+            labels:
+              severity: critical
+              component: application
+            annotations:
+              summary: "High error rate detected"
+              description: "Application {{ $labels.pod }} has error rate above 5% (current: {{ $value | humanizePercentage }})"
+              runbook_url: "https://runbooks.example.com/HighErrorRate"
+          
+          # High response time
+          - alert: HighResponseTime
+            expr: |
+              histogram_quantile(0.95,
+                sum(rate(http_request_duration_seconds_bucket{job="multi-cloud-devsecops"}[5m])) by (le)
+              ) > 1
+            for: 5m
+            labels:
+              severity: warning
+              component: application
+            annotations:
+              summary: "High response time detected"
+              description: "95th percentile response time is above 1 second (current: {{ $value }}s)"
+              runbook_url: "https://runbooks.example.com/HighResponseTime"
+          
+          # Application down
+          - alert: ApplicationDown
+            expr: up{job="multi-cloud-devsecops"} == 0
+            for: 1m
+            labels:
+              severity: critical
+              component: application
+            annotations:
+              summary: "Application instance is down"
+              description: "Application instance {{ $labels.pod }} has been down for more than 1 minute"
+              runbook_url: "https://runbooks.example.com/ApplicationDown"
+          
+          # High memory usage
+          - alert: HighMemoryUsage
+            expr: |
+              container_memory_usage_bytes{pod=~"multi-cloud-devsecops.*"}
+              /
+              container_spec_memory_limit_bytes{pod=~"multi-cloud-devsecops.*"}
+              > 0.9
+            for: 5m
+            labels:
+              severity: warning
+              component: application
+            annotations:
+              summary: "High memory usage"
+              description: "Pod {{ $labels.pod }} is using {{ $value | humanizePercentage }} of memory limit"
+              runbook_url: "https://runbooks.example.com/HighMemoryUsage"
+          
+          # High CPU usage
+          - alert: HighCPUUsage
+            expr: |
+              rate(container_cpu_usage_seconds_total{pod=~"multi-cloud-devsecops.*"}[5m])
+              /
+              container_spec_cpu_quota{pod=~"multi-cloud-devsecops.*"}
+              * 100000
+              > 0.9
+            for: 5m
+            labels:
+              severity: warning
+              component: application
+            annotations:
+              summary: "High CPU usage"
+              description: "Pod {{ $labels.pod }} is using {{ $value | humanizePercentage }} of CPU limit"
+              runbook_url: "https://runbooks.example.com/HighCPUUsage"
+          
+          # Pod restart
+          - alert: PodRestarting
+            expr: rate(kube_pod_container_status_restarts_total{pod=~"multi-cloud-devsecops.*"}[15m]) > 0
+            for: 5m
+            labels:
+              severity: warning
+              component: application
+            annotations:
+              summary: "Pod is restarting"
+              description: "Pod {{ $labels.pod }} has restarted {{ $value }} times in the last 15 minutes"
+              runbook_url: "https://runbooks.example.com/PodRestarting"
