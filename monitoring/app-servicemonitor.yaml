@@ -1,0 +1,16 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: app-metrics
+  namespace: dev
+  labels:
+    app: multi-cloud-devsecops
+    release: prometheus
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: multi-cloud-devsecops
+  endpoints:
+  - port: http
+    path: /metrics
+    interval: 30s

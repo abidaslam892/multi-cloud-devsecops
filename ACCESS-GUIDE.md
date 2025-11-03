@@ -59,7 +59,7 @@ curl -X POST http://a2f5a6578b9a34e5dac5bac56dd065f8-1159945048.us-east-1.elb.am
 ## 📊 Monitoring Access
 
 ### Grafana (Azure AKS)
-**Grafana URL:** `http://48.194.125.118`
+**Grafana URL:** `http://172.171.79.79`
 
 **Credentials:**
 - **Username:** `admin`
@@ -67,13 +67,29 @@ curl -X POST http://a2f5a6578b9a34e5dac5bac56dd065f8-1159945048.us-east-1.elb.am
 
 **Access via Browser:**
 ```
-http://48.194.125.118
+http://172.171.79.79
 ```
 
 **Pre-configured Dashboards:**
 - Kubernetes cluster monitoring
 - Node exporter metrics
 - Application metrics (Prometheus)
+- AlertManager dashboard
+
+**How to Access:**
+1. Open browser to `http://172.171.79.79`
+2. Login with username: `admin`, password: `admin`
+3. Navigate to "Dashboards" → "Browse"
+4. Explore pre-installed dashboards:
+   - **Kubernetes / Compute Resources / Cluster** - Overall cluster metrics
+   - **Kubernetes / Compute Resources / Namespace (Pods)** - Pod-level metrics
+   - **Kubernetes / Compute Resources / Node (Pods)** - Node-level metrics
+   - **Node Exporter / Nodes** - System metrics for all nodes
+
+**Create Custom Dashboard for Application:**
+1. Go to "Dashboards" → "New" → "New Dashboard"
+2. Add panel with query: `rate(http_requests_total[5m])`
+3. Save dashboard
 
 ---
 
