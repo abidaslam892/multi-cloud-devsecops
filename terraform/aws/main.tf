@@ -3,7 +3,7 @@ module "vpc" {
   source = "terraform-aws-modules/vpc/aws"
   version = "~> 5.0"
 
-  name = "${var.project_name}-${var.environment}-vpc"
+  name = "mc-devsecops-${var.environment}-vpc"
   cidr = var.vpc_cidr
 
   azs             = var.availability_zones
@@ -17,17 +17,17 @@ module "vpc" {
 
   # EKS-specific tags for subnet discovery
   public_subnet_tags = {
-    "kubernetes.io/role/elb"                                        = "1"
-    "kubernetes.io/cluster/${var.project_name}-${var.environment}" = "shared"
+    "kubernetes.io/role/elb"                         = "1"
+    "kubernetes.io/cluster/mc-devsecops-${var.environment}" = "shared"
   }
 
   private_subnet_tags = {
-    "kubernetes.io/role/internal-elb"                               = "1"
-    "kubernetes.io/cluster/${var.project_name}-${var.environment}" = "shared"
+    "kubernetes.io/role/internal-elb"                = "1"
+    "kubernetes.io/cluster/mc-devsecops-${var.environment}" = "shared"
   }
 
   tags = {
-    Name = "${var.project_name}-${var.environment}-vpc"
+    Name = "mc-devsecops-${var.environment}-vpc"
   }
 }
 
@@ -36,7 +36,7 @@ module "eks" {
   source  = "terraform-aws-modules/eks/aws"
   version = "~> 19.0"
 
-  cluster_name    = "${var.project_name}-${var.environment}"
+  cluster_name    = "mc-devsecops-${var.environment}"
   cluster_version = var.eks_cluster_version
 
   vpc_id     = module.vpc.vpc_id
@@ -68,7 +68,7 @@ module "eks" {
   # EKS Managed Node Group
   eks_managed_node_groups = {
     main = {
-      name = "${var.project_name}-${var.environment}-ng"
+      name = "ng-${var.environment}"
 
       instance_types = var.eks_node_instance_types
       capacity_type  = var.environment == "prod" ? "ON_DEMAND" : "SPOT"
@@ -76,6 +76,9 @@ module "eks" {
       min_size     = var.eks_node_min_size
       max_size     = var.eks_node_max_size
       desired_size = var.eks_node_desired_size
+
+      # Disable name prefix to avoid length issues
+      iam_role_use_name_prefix = false
 
       # Node labels
       labels = {
@@ -92,7 +95,7 @@ module "eks" {
       }
 
       tags = {
-        Name = "${var.project_name}-${var.environment}-node"
+        Name = "mc-devsecops-${var.environment}-node"
       }
     }
   }
@@ -131,13 +134,13 @@ module "eks" {
   }
 
   tags = {
-    Name = "${var.project_name}-${var.environment}-eks"
+    Name = "mc-devsecops-${var.environment}-eks"
   }
 }
 
 # ECR Repository
 resource "aws_ecr_repository" "app" {
-  name                 = "${var.project_name}-${var.environment}"
+  name                 = "mc-devsecops-${var.environment}"
   image_tag_mutability = "MUTABLE"
 
   image_scanning_configuration {
@@ -149,7 +152,7 @@ resource "aws_ecr_repository" "app" {
   }
 
   tags = {
-    Name = "${var.project_name}-${var.environment}-ecr"
+    Name = "mc-devsecops-${var.environment}-ecr"
   }
 }
 
@@ -191,7 +194,7 @@ resource "aws_ecr_lifecycle_policy" "app" {
 
 # IAM Role for EBS CSI Driver
 resource "aws_iam_role" "ebs_csi_driver" {
-  name = "${var.project_name}-${var.environment}-ebs-csi-driver"
+  name = "mc-devsecops-${var.environment}-ebs-csi"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"

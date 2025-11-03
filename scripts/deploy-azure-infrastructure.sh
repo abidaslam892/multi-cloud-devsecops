@@ -52,10 +52,13 @@ echo "✓ Subscription ID: $SUBSCRIPTION_ID"
 echo ""
 
 # Create Azure backend if it doesn't exist
-STORAGE_ACCOUNT="multicloudtfstate"
+# Generate unique storage account name (must be globally unique, lowercase, alphanumeric only)
+STORAGE_ACCOUNT="tfstate$(echo -n "${SUBSCRIPTION_ID}" | md5sum | cut -c1-12)"
 CONTAINER_NAME="tfstate"
 RESOURCE_GROUP="multi-cloud-terraform-rg"
 LOCATION="eastus"
+
+echo "Using storage account: $STORAGE_ACCOUNT"
 
 echo "Setting up Terraform backend..."
 
@@ -112,6 +115,13 @@ echo ""
 
 # Change to Terraform directory
 cd "$TERRAFORM_DIR"
+
+# Update backend config with actual storage account name
+BACKEND_CONFIG="../backends/backend-${ENVIRONMENT}-azure.tfvars"
+if [ -f "$BACKEND_CONFIG" ]; then
+    sed -i "s/storage_account_name = .*/storage_account_name = \"$STORAGE_ACCOUNT\"/" "$BACKEND_CONFIG"
+    echo "✓ Updated backend config with storage account: $STORAGE_ACCOUNT"
+fi
 
 # Initialize Terraform
 echo "Initializing Terraform..."
