@@ -51,10 +51,10 @@ Before running CI/CD workflows, configure these GitHub Secrets in your repositor
 
 | Secret Name | Description | Example Value |
 |-------------|-------------|---------------|
-| `AWS_ACCESS_KEY_ID` | AWS access key ID | `AKIAIOSFODNN7EXAMPLE` |
-| `AWS_SECRET_ACCESS_KEY` | AWS secret access key | `wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY` |
-| `AWS_REGION` | AWS region for deployment | `us-east-1` |
-| `ECR_REGISTRY` | ECR registry URL | `123456789012.dkr.ecr.us-east-1.amazonaws.com` |
+| `AWS_ACCESS_KEY_ID` | AWS access key ID | `xxxxxxxxxxxxx` |
+| `AWS_SECRET_ACCESS_KEY` | AWS secret access key | `xxxxxxxxxxxxxxxx` |
+| `AWS_REGION` | AWS region for deployment | `xxxxxxxxxx` |
+| `ECR_REGISTRY` | ECR registry URL | `xxxxxxxxxxxxxxx |
 | `ECR_REPO` | ECR repository name | `multi-cloud-devsecops` |
 | `EKS_CLUSTER_NAME` | EKS cluster name | `multi-cloud-eks-dev` |
 
